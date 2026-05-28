@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "AgentBrowser",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "src/popup/index.html"
+  },
+  "background": {
+    "service_worker": "src/background/serviceWorker.ts",
+    "type": "module"
+  },
+  "permissions": ["debugger", "tabs", "activeTab", "alarms", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16": "src/popup/assets/AgentBrowser-icon.png",
+    "48": "src/popup/assets/AgentBrowser-icon.png",
+    "128": "src/popup/assets/AgentBrowser-icon.png"
+  }
+}
