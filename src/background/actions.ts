@@ -249,49 +249,69 @@ export async function performType(
   }
 
   if (pressEnter) {
-    try {
-      await chrome.debugger.sendCommand({ tabId }, "Runtime.evaluate", {
-        expression: `(() => {
-          const el = document.activeElement;
-          if (!el) return false;
-          const dispatch = (type) => {
-            const ev = new KeyboardEvent(type, {
-              key: 'Enter',
-              code: 'Enter',
-              keyCode: 13,
-              which: 13,
-              bubbles: true,
-              cancelable: true
-            });
-            el.dispatchEvent(ev);
-            return ev.defaultPrevented;
-          };
-          dispatch('keydown');
-          dispatch('keypress');
-          dispatch('keyup');
-          return true;
-        })()`,
-        returnByValue: true,
-      });
-    } catch (e) {
-      console.error("[EXT] Error dispatching DOM Enter event:", e);
-    }
-
+    // Strategy 1: CDP keyDown → char(\r) → keyUp (proper browser event pipeline)
     try {
       await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
-        type: "rawKeyDown",
+        type: "keyDown",
         key: "Enter",
         code: "Enter",
+        keyCode: 13,
         windowsVirtualKeyCode: 13,
+        unmodifiedText: "\r",
+        text: "\r",
+      });
+      await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
+        type: "char",
+        text: "\r",
       });
       await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
         type: "keyUp",
         key: "Enter",
         code: "Enter",
+        keyCode: 13,
         windowsVirtualKeyCode: 13,
       });
     } catch (e) {
       console.error("[EXT] Error dispatching CDP Enter key:", e);
+    }
+
+    // Strategy 2: Backstop — find closest form and submit it directly.
+    // Many sites (Amazon, React SPAs, Angular forms) ignore raw keyboard events
+    // and rely on form submit handlers. This covers every case universally.
+    try {
+      await chrome.debugger.sendCommand({ tabId }, "Runtime.evaluate", {
+        expression: `(() => {
+          let el = document.activeElement;
+          while (el) {
+            if (el.tagName === 'FORM') {
+              el.requestSubmit();
+              return 'form-submitted';
+            }
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable) {
+              el.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
+                bubbles: true, cancelable: true
+              }));
+              el.dispatchEvent(new KeyboardEvent('keypress', {
+                key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
+                bubbles: true, cancelable: true
+              }));
+              el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            el = el.parentElement;
+          }
+          // No form ancestor — try nearest input's form
+          const activeEl = document.activeElement;
+          if (activeEl && activeEl.form) {
+            activeEl.form.requestSubmit();
+            return 'form-submitted';
+          }
+          return 'no-form-found';
+        })()`,
+        returnByValue: true,
+      });
+    } catch (e) {
+      console.error("[EXT] Error in form submit fallback:", e);
     }
   }
 
