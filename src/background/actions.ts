@@ -241,12 +241,9 @@ export async function performType(
     }
   }
 
-  for (const char of text) {
-    await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
-      type: "char",
-      text: char,
-    });
-  }
+  await chrome.debugger.sendCommand({ tabId }, "Input.insertText", {
+    text,
+  });
 
   if (pressEnter) {
     // Strategy 1: CDP keyDown → char(\r) → keyUp (proper browser event pipeline)
