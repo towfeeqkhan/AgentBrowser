@@ -71,6 +71,17 @@ If `get_page_state` shows loading spinners, skeleton placeholders, or shimmer an
 
 ---
 
+## Handling Popups, Overlays, and Modals
+
+⚠️ **When ANY popup, modal, overlay, dialog, or cookie banner appears: `dismiss_active_overlays` is ALWAYS your first tool. Never try to click close buttons manually — use this tool instead.**
+
+1. **Call `dismiss_active_overlays`** — it sends Escape then removes overlay DOM elements directly.
+2. **Call `get_page_state`** immediately after — see the unobstructed page.
+3. If overlays re-appear (some sites re-spawn on interaction), call `dismiss_active_overlays` again.
+4. For complex multi-layered overlays, use `dismiss_active_overlays` between each interaction step.
+
+---
+
 ## Performance Tips
 
 | Situation | Recommended approach |
@@ -83,4 +94,5 @@ If `get_page_state` shows loading spinners, skeleton placeholders, or shimmer an
 | Duplicate button names | Pass `proximityText` (nearby product title, section heading, etc.) |
 | Page shows spinners/skeleton UI | Wait 2s → `capture_page` → `get_page_state` (retry up to 4×) |
 | "Copy" button on page | Use `clipboard_copy` instead (browser sandbox blocks native copy) |
+| Popup, modal, or overlay blocking page | `dismiss_active_overlays` FIRST — then `get_page_state` |
 | Action times out on slow scripts | Add `skipDomWait: true` to skip the DOM settlement wait |

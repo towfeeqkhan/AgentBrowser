@@ -80,3 +80,14 @@ Complete catalog of MCP tools available to control and interact with the browser
 * **`tab_list`**: Lists all open browser tabs with their IDs, URLs, and titles. Essential when links open in new windows — use this to discover and switch to background tabs.
 * **`tab_switch`**: Switches focus to a specific tab by its numeric `tabId` (from `tab_list`).
 * **`tab_close`**: Closes a specific tab by its numeric `tabId` (from `tab_list`).
+
+---
+
+## 6. Overlay & Popup Dismissal
+
+* **`dismiss_active_overlays`**: ⚠️ **THIS IS YOUR FIRST TOOL when any popup, modal, overlay, dialog, lightbox, or cookie banner appears on screen.** Do NOT try to click close buttons with `click_element` — use this tool instead.
+  * **What it does**: Sends an Escape key (closes focus-trap dialogs natively) then removes ALL visible overlay containers from the DOM. Since it removes elements directly rather than clicking close buttons, it cannot toggle or accidentally open new overlays.
+  * **Always follow with `get_page_state`** to see the unobstructed page after dismissal.
+  * **Speed tip**: Call `dismiss_active_overlays` before starting any page interaction — it clears the viewport upfront so every subsequent tool call hits real page elements.
+  * **If overlays re-appear**: Some sites re-spawn overlays on scroll or interaction. Call `dismiss_active_overlays` again — it's cheap and idempotent.
+  * **Pipeline integration**: The `execute_pipeline` tool also supports `autoDismiss` for per-action overlay removal during multi-step flows, but `dismiss_active_overlays` is the standalone tool for upfront clearance.

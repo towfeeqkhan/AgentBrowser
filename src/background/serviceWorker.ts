@@ -18,6 +18,7 @@ import {
   performSwitchTab,
   performCloseTab,
   performPipeline,
+  performDismissActiveOverlays,
 } from "./actions.js";
 
 // ─── Runtime Message Listener ────────────────────────
@@ -156,6 +157,9 @@ function connectToMCP() {
             break;
           case "pipeline":
             result = await performPipeline(msg.actions, msg.autoDismiss);
+            break;
+          case "dismiss_active_overlays":
+            result = await performDismissActiveOverlays();
             break;
           default:
             result = { error: `Unknown action: ${msg.type}` };
