@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { sendAction } from "./shared.js";
+import { sendAction, pageStateContentBlocks } from "./shared.js";
 
 export function register(server: McpServer) {
   server.registerTool(
@@ -14,7 +14,7 @@ export function register(server: McpServer) {
     async ({ skipDomWait }) => {
       await sendAction({ type: "go_forward", skipDomWait });
       return {
-        content: [{ type: "text", text: "Navigated forward." }],
+        content: [{ type: "text", text: "Navigated forward." }, ...pageStateContentBlocks()],
       };
     }
   );

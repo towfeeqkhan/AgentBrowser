@@ -6,6 +6,7 @@ import {
   findElementById,
   findElementByProximity,
   PipelineActionSchema,
+  pageStateContentBlocks,
 } from "./shared.js";
 
 export function register(server: McpServer) {
@@ -83,6 +84,8 @@ export function register(server: McpServer) {
           type: "text",
           text: "⬆️ Recovery screenshot captured at the point of failure.",
         });
+      } else {
+        contentBlocks.push(...pageStateContentBlocks());
       }
 
       return { content: contentBlocks };

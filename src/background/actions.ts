@@ -5,7 +5,7 @@ import {
   waitForDOMSettled,
   waitForPageLoadIfNavigating,
 } from "./cdp-helpers.js";
-import { performCapture, invalidateCapture } from "./capture.js";
+import { invalidateCapture } from "./capture.js";
 
 export async function performClick(x: number, y: number, elementId?: string, selector?: string, proximityText?: string) {
   const tabId = await attachCDP_MCP(true);
@@ -162,8 +162,6 @@ export async function performClick(x: number, y: number, elementId?: string, sel
   });
 
   await waitForPageLoadIfNavigating(tabId);
-  invalidateCapture();
-  await performCapture(true);
   return { success: true };
 }
 
@@ -308,7 +306,6 @@ export async function performType(
   }
 
   await waitForPageLoadIfNavigating(tabId);
-  invalidateCapture();
   return { success: true };
 }
 
@@ -321,7 +318,6 @@ export async function performScroll(x: number, y: number, deltaY: number) {
     deltaX: 0,
     deltaY,
   });
-  invalidateCapture();
   return { success: true };
 }
 
@@ -332,8 +328,6 @@ export async function performNavigate(url: string) {
     await chrome.tabs.update(tabId, { url });
   }
   await waitForPageLoadIfNavigating(tabId, 500, 10000);
-  invalidateCapture();
-  await performCapture(true);
   return { success: true };
 }
 
@@ -346,8 +340,6 @@ export async function performRefresh() {
   const tabId = await attachCDP_MCP(true);
   await chrome.tabs.reload(tabId);
   await waitForPageLoadIfNavigating(tabId, 500, 10000);
-  invalidateCapture();
-  await performCapture(true);
   return { success: true };
 }
 
@@ -355,8 +347,6 @@ export async function performGoBack() {
   const tabId = await attachCDP_MCP(true);
   await chrome.tabs.goBack(tabId);
   await waitForPageLoadIfNavigating(tabId, 500, 10000);
-  invalidateCapture();
-  await performCapture(true);
   return { success: true };
 }
 
@@ -364,8 +354,6 @@ export async function performGoForward() {
   const tabId = await attachCDP_MCP(true);
   await chrome.tabs.goForward(tabId);
   await waitForPageLoadIfNavigating(tabId, 500, 10000);
-  invalidateCapture();
-  await performCapture(true);
   return { success: true };
 }
 
@@ -545,8 +533,6 @@ export async function performDismissActiveOverlays() {
       },
     )) as any;
     const count = result?.result?.value ?? 0;
-    invalidateCapture();
-    await performCapture(true);
     return { success: true, dismissed: count };
   } catch (e: any) {
     console.error("[EXT] dismissActiveOverlays failed:", e);
@@ -703,9 +689,6 @@ export async function performPipeline(
       console.error("[EXT] Failed to capture recovery screenshot:", e);
     }
   }
-
-  invalidateCapture();
-  await performCapture(true);
 
   return { success: !hadFailure, results: subResults, recoveryScreenshot };
 }

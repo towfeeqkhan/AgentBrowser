@@ -183,7 +183,7 @@ export async function performCapture(isExplicitAction: boolean = false) {
       );
     }
   }
-  return { success: true };
+  return { screenshot, tree, success: true };
 }
 
 export function invalidateCapture() {

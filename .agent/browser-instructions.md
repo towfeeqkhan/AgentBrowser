@@ -12,10 +12,9 @@ The screenshot and tree you receive show ONLY the currently visible portion of t
 
 **You MUST scroll to find things. Never assume an element doesn't exist just because it's not in the current tree.** Before concluding "not found":
 
-1. **Scroll down** (`scroll_page` with `deltaY: 800`) to check below the fold
-2. **Call `get_page_state`** to see the newly revealed area
-3. If still not found, scroll further or in different directions
-4. Only after scrolling through the ENTIRE page can you conclude something is missing
+1. **Scroll down** (`scroll_page` with `deltaY: 800`) — the response already includes the fresh page state from the new position
+2. If still not found, scroll further or in different directions
+3. Only after scrolling through the ENTIRE page can you conclude something is missing
 
 **Common pages with below-fold content:** search results (results continue below), product pages (reviews/specs below), dashboards (panels stack vertically), long forms, article pages, e-commerce listings.
 
@@ -34,7 +33,7 @@ The only time you use `navigate` is: (a) going to the user's explicitly requeste
 
 If the element/target/content you need is not in the current tree/screenshot:
 
-1. **Scroll first.** Try `scroll_page(deltaY: 800)` to go down, then `get_page_state`
+1. **Scroll first.** Try `scroll_page(deltaY: 800)` — the response already includes the fresh page state from the new position
 2. **Scroll more.** If still missing, try `scroll_page(deltaY: 1600)` or smaller increments
 3. **Check collapsed sections.** Look for expandable headers, "Show more" buttons, tab panels — click to reveal
 4. **Use `find_element`** to search the tree by name after scrolling
@@ -52,8 +51,8 @@ When you see a link on a page, CLICK IT. The `click_element` tool automatically 
 
 1. **Get Page State:** On every single step or new page, ALWAYS call `get_page_state` FIRST to get the screenshot + accessibility tree. **Prefer passing `compact: true`** to prune the tree payload (saving 50-70% of tokens) unless you need complete layout metrics.
 2. **Scan & Scroll:** Read the screenshot. The page continues below the visible area — if what you need isn't in view, SCROLL DOWN and re-capture. Repeat until you've covered the relevant portion of the page.
-3. **Take Action:** Interact using the appropriate tool (see `tools-documentation.md`). **Prefer `execute_pipeline` for 2+ actions** — it runs the whole sequence in one round-trip. Always use `pressEnter: true` on search/chat inputs for auto-submission.
-4. **Verify & Repeat:** After each action, call `get_page_state` to see the result. Actions auto-wait for page load + DOM settle, so proceed immediately.
+3. **Take Action:** Interact using the appropriate tool (see `tools-documentation.md`). **Prefer `execute_pipeline` for 2+ actions** — it runs the whole sequence in one round-trip. Always use `pressEnter: true` on search/chat inputs for auto-submission. **Every interaction tool returns the fresh page state in its response** — you do NOT need to call `get_page_state` separately after an action.
+4. **Verify & Repeat:** After each action, the tool response already includes a fresh screenshot + tree. Proceed immediately to the next action without a separate `get_page_state` call. Only call `get_page_state` explicitly when starting a new task or after a page you haven't interacted with yet.
 
 NEVER say you cannot perform an action. If the tree is missing an element, SCROLL FIRST, then use the visual screenshot for coordinate estimation as fallback.
 
@@ -75,10 +74,9 @@ If `get_page_state` shows loading spinners, skeleton placeholders, or shimmer an
 
 ⚠️ **When ANY popup, modal, overlay, dialog, or cookie banner appears: `dismiss_active_overlays` is ALWAYS your first tool. Never try to click close buttons manually — use this tool instead.**
 
-1. **Call `dismiss_active_overlays`** — it sends Escape then removes overlay DOM elements directly.
-2. **Call `get_page_state`** immediately after — see the unobstructed page.
-3. If overlays re-appear (some sites re-spawn on interaction), call `dismiss_active_overlays` again.
-4. For complex multi-layered overlays, use `dismiss_active_overlays` between each interaction step.
+1. **Call `dismiss_active_overlays`** — it sends Escape then removes overlay DOM elements directly. The response already includes the fresh page state.
+2. If overlays re-appear (some sites re-spawn on interaction), call `dismiss_active_overlays` again.
+3. For complex multi-layered overlays, use `dismiss_active_overlays` between each interaction step.
 
 ---
 
@@ -86,7 +84,7 @@ If `get_page_state` shows loading spinners, skeleton placeholders, or shimmer an
 
 | Situation | Recommended approach |
 |---|---|
-| Element not in current tree | SCROLL first — `scroll_page(deltaY: 800)` → `get_page_state` → check again |
+| Element not in current tree | SCROLL first — `scroll_page(deltaY: 800)` (response already includes new state) |
 | Need to reach another page | Find and CLICK the link — never construct a URL yourself |
 | Link opens in new tab/window | `tab_list` → `tab_switch` to it, `tab_close` when done |
 | Multi-step form fill | `execute_pipeline` with `pressEnter: true` on typing |
@@ -94,5 +92,5 @@ If `get_page_state` shows loading spinners, skeleton placeholders, or shimmer an
 | Duplicate button names | Pass `proximityText` (nearby product title, section heading, etc.) |
 | Page shows spinners/skeleton UI | Wait 2s → `capture_page` → `get_page_state` (retry up to 4×) |
 | "Copy" button on page | Use `clipboard_copy` instead (browser sandbox blocks native copy) |
-| Popup, modal, or overlay blocking page | `dismiss_active_overlays` FIRST — then `get_page_state` |
+| Popup, modal, or overlay blocking page | `dismiss_active_overlays` FIRST — response has fresh state, no extra `get_page_state` needed |
 | Action times out on slow scripts | Add `skipDomWait: true` to skip the DOM settlement wait |

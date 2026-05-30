@@ -1,8 +1,8 @@
 import { HEARTBEAT_INTERVAL_MS } from "./constants.js";
 import { wsState, observerState, captureCache } from "./state.js";
-import { setupDebuggerLifecycle, injectMutationObserver } from "./cdp-helpers.js";
+import { setupDebuggerLifecycle, injectMutationObserver, waitForRenderReady, validateCapture } from "./cdp-helpers.js";
 import { captureAxTree } from "./a11y.js";
-import { performCapture, debouncedCapture } from "./capture.js";
+import { performCapture, invalidateCapture, debouncedCapture } from "./capture.js";
 import {
   performClick,
   performType,
@@ -20,6 +20,11 @@ import {
   performPipeline,
   performDismissActiveOverlays,
 } from "./actions.js";
+
+const stateChangingActions = new Set([
+  "click", "type", "scroll", "navigate", "refresh",
+  "go_back", "go_forward", "pipeline", "dismiss_active_overlays", "hover",
+]);
 
 // ─── Runtime Message Listener ────────────────────────
 chrome.runtime.onMessage.addListener(
@@ -166,6 +171,21 @@ function connectToMCP() {
         }
       } catch (e: any) {
         result = { error: e.message };
+      }
+
+      if (stateChangingActions.has(msg.type) && !(result as any).error) {
+        invalidateCapture();
+        try {
+          await waitForRenderReady(
+            wsState.debuggerAttachedTabId!,
+            msg.type === "scroll" ? 600 : 500,
+          );
+          await validateCapture(wsState.debuggerAttachedTabId!);
+          const captureResult = await performCapture(true);
+          (result as any)._pageState = { screenshot: captureResult.screenshot, tree: captureResult.tree };
+        } catch (e) {
+          console.error("[EXT] Post-action capture failed, proceeding without pageState:", e);
+        }
       }
 
       if (wsState.ws && wsState.ws.readyState === WebSocket.OPEN) {
