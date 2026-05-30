@@ -44,7 +44,7 @@ coverage/
 # Editor & OS files
 ############################
 .vscode/
-commandcode/
+.commandcode/
 .idea/
 .DS_Store
 Thumbs.db
