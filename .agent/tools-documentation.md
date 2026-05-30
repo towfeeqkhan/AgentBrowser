@@ -80,3 +80,13 @@ Complete catalog of MCP tools available to control and interact with the browser
 * **`tab_list`**: Lists all open browser tabs with their IDs, URLs, and titles. Essential when links open in new windows — use this to discover and switch to background tabs.
 * **`tab_switch`**: Switches focus to a specific tab by its numeric `tabId` (from `tab_list`).
 * **`tab_close`**: Closes a specific tab by its numeric `tabId` (from `tab_list`).
+
+---
+
+## 6. Overlay & Popup Dismissal
+
+* **`dismiss_active_overlays`**: Scans the current page for visible overlays, modals, popups, dialogs, lightboxes, and cookie banners, then automatically clicks their close/dismiss buttons to remove them. Use this tool whenever a popup or overlay blocks your interactions.
+  * **How it works**: First scans overlay containers (`[class*="overlay"]`, `[class*="modal"]`, `[class*="popup"]`, `[class*="dialog"]`, `[class*="lightbox"]`, `div[role="dialog"]`, `div[aria-modal="true"]`) and looks for close buttons within them (`[class*="close"]`, `[aria-label*="close"]`, `[class*="dismiss"]`, `[aria-label*="dismiss"]`). Clicks the first match in each visible container. Falls back to built-in cookie/privacy selectors if no container-based overlay is found.
+  * **Returns**: The number of overlays dismissed — call `get_page_state` immediately after to see the unobstructed page.
+  * **Multi-pass**: Some sites have layered overlays — call `dismiss_active_overlays` again if the first pass missed one.
+  * **Pipeline integration**: The `execute_pipeline` tool also supports `autoDismiss` for per-action overlay removal during multi-step flows, but `dismiss_active_overlays` is the standalone command for pre-clearance.

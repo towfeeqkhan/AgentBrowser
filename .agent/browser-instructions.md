@@ -71,6 +71,18 @@ If `get_page_state` shows loading spinners, skeleton placeholders, or shimmer an
 
 ---
 
+## Handling Popups, Overlays, and Modals
+
+If a popup, modal, overlay, dialog, or cookie banner appears and blocks your interactions:
+
+1. **Call `dismiss_active_overlays`** as your first step — it scans visible overlay containers and automatically clicks close buttons.
+2. **Call `get_page_state`** immediately after — the tool re-captures the page after dismissal so you see the unobstructed page.
+3. If the overlay persists, use it again — site-specific close buttons may require a second pass.
+4. For complex multi-layered overlays, call `dismiss_active_overlays` between each interaction step.
+5. The `execute_pipeline` tool also includes `autoDismiss` support — pass specific selectors if known.
+
+---
+
 ## Performance Tips
 
 | Situation | Recommended approach |

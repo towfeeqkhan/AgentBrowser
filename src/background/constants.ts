@@ -49,5 +49,32 @@ export const BUILTIN_DISMISSALS = [
   { selector: '[class*="popup"] button[class*="close" i]', action: 'click' as const },
 ];
 
+export const OVERLAY_CONTAINER_SELECTORS = [
+  '[class*="overlay"]:not([class*="overlay"] [class*="content"])',
+  '[class*="modal"]',
+  '[class*="popup"]',
+  '[class*="dialog"]',
+  '[class*="lightbox"]',
+  '[id*="modal"]',
+  '[id*="popup"]',
+  '[id*="overlay"]',
+  'div[role="dialog"]',
+  'div[aria-modal="true"]',
+];
+
+export const OVERLAY_CLOSE_SELECTORS = [
+  '[class*="close"]',
+  '[class*="dismiss"]',
+  '[aria-label*="close" i]',
+  '[aria-label*="dismiss" i]',
+  '[data-dismiss]',
+  '[data-close]',
+  'button:has(svg[class*="close"])',
+  'button:has(svg[class*="dismiss"])',
+  '[class*="x"]',
+  'button[title*="close" i]',
+  'button[title*="dismiss" i]',
+];
+
 export const CAPTURE_DEBOUNCE_MS = 500;
 export const HEARTBEAT_INTERVAL_MS = 3000;

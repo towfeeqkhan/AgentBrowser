@@ -18,6 +18,7 @@ import {
   performSwitchTab,
   performCloseTab,
   performPipeline,
+  performDismissActiveOverlays,
 } from "./actions.js";
 
 // ─── Runtime Message Listener ────────────────────────
@@ -153,6 +154,9 @@ function connectToMCP() {
             break;
           case "close_tab":
             result = await performCloseTab(msg.tabId);
+            break;
+          case "dismiss_active_overlays":
+            result = await performDismissActiveOverlays();
             break;
           case "pipeline":
             result = await performPipeline(msg.actions, msg.autoDismiss);

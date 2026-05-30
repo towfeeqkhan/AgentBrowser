@@ -32,6 +32,7 @@ import { register as clipboardPaste } from "./tools/clipboard_paste.js";
 import { register as tabList } from "./tools/tab_list.js";
 import { register as tabSwitch } from "./tools/tab_switch.js";
 import { register as tabClose } from "./tools/tab_close.js";
+import { register as dismissActiveOverlays } from "./tools/dismiss_active_overlays.js";
 
 // ─── WebSocket Server (Extension connects here) ──────
 const wss = new WebSocketServer({
@@ -131,6 +132,7 @@ clipboardPaste(server);
 tabList(server);
 tabSwitch(server);
 tabClose(server);
+dismissActiveOverlays(server);
 
 // ─── Start MCP over stdio ─────────────────────────────
 const transport = new StdioServerTransport();

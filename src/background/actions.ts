@@ -1,4 +1,4 @@
-import { BUILTIN_DISMISSALS } from "./constants.js";
+import { BUILTIN_DISMISSALS, OVERLAY_CONTAINER_SELECTORS, OVERLAY_CLOSE_SELECTORS } from "./constants.js";
 import {
   attachCDP_MCP,
   captureViewportScreenshot,
@@ -246,7 +246,6 @@ export async function performType(
   });
 
   if (pressEnter) {
-    // Strategy 1: CDP keyDown → char(\r) → keyUp (proper browser event pipeline)
     try {
       await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
         type: "keyDown",
@@ -272,9 +271,6 @@ export async function performType(
       console.error("[EXT] Error dispatching CDP Enter key:", e);
     }
 
-    // Strategy 2: Backstop — find closest form and submit it directly.
-    // Many sites (Amazon, React SPAs, Angular forms) ignore raw keyboard events
-    // and rely on form submit handlers. This covers every case universally.
     try {
       await chrome.debugger.sendCommand({ tabId }, "Runtime.evaluate", {
         expression: `(() => {
@@ -297,7 +293,6 @@ export async function performType(
             }
             el = el.parentElement;
           }
-          // No form ancestor — try nearest input's form
           const activeEl = document.activeElement;
           if (activeEl && activeEl.form) {
             activeEl.form.requestSubmit();
@@ -496,6 +491,57 @@ export async function performGetText(selector?: string, x?: number, y?: number, 
     throw new Error("Element not found");
   }
   return { text };
+}
+
+export async function performDismissActiveOverlays() {
+  const tabId = await attachCDP_MCP(true);
+  try {
+    const result = (await chrome.debugger.sendCommand(
+      { tabId },
+      "Runtime.evaluate",
+      {
+        expression: `(() => {
+          let dismissed = 0;
+          const overlays = [
+            ...document.querySelectorAll(${JSON.stringify(OVERLAY_CONTAINER_SELECTORS.join(","))})
+          ];
+          const closeSelectors = ${JSON.stringify(OVERLAY_CLOSE_SELECTORS)};
+          const builtinDismissals = ${JSON.stringify(BUILTIN_DISMISSALS)};
+          for (const overlay of overlays) {
+            const rect = overlay.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) continue;
+            for (const sel of closeSelectors) {
+              const closeBtn = overlay.querySelector(sel);
+              if (closeBtn) {
+                closeBtn.click();
+                dismissed++;
+                break;
+              }
+            }
+            if (dismissed > 0 && dismissed >= overlays.length) break;
+          }
+          if (dismissed === 0) {
+            for (const d of builtinDismissals) {
+              const el = document.querySelector(d.selector);
+              if (el && el.getBoundingClientRect().width > 0) {
+                d.action === 'remove' ? el.remove() : el.click();
+                dismissed++;
+              }
+            }
+          }
+          return dismissed;
+        })()`,
+        returnByValue: true,
+      },
+    )) as any;
+    const count = result?.result?.value ?? 0;
+    invalidateCapture();
+    await performCapture(true);
+    return { success: true, dismissed: count };
+  } catch (e: any) {
+    console.error("[EXT] dismissActiveOverlays failed:", e);
+    return { success: false, dismissed: 0, error: e.message };
+  }
 }
 
 async function autoDismissOverlays(
