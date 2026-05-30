@@ -6,6 +6,7 @@ import {
   findElement,
   findElementById,
   findElementByProximity,
+  pageStateContentBlocks,
 } from "./shared.js";
 
 export function register(server: McpServer) {
@@ -77,6 +78,7 @@ export function register(server: McpServer) {
       return {
         content: [
           { type: "text", text: `✅ Clicked "${name || (elementId !== undefined ? String(elementId) : "coords")}" at (${x}, ${y})` },
+          ...pageStateContentBlocks(),
         ],
       };
     }

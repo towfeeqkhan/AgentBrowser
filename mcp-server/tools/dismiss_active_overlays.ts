@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { sendAction } from "./shared.js";
+import { sendAction, pageStateContentBlocks } from "./shared.js";
 
 export function register(server: McpServer) {
   server.registerTool(
@@ -17,6 +17,7 @@ export function register(server: McpServer) {
               ? `Dismissed ${result.dismissed ?? 0} overlay(s). Call get_page_state to see the page.`
               : `Dismiss failed: ${result?.error ?? "unknown error"}`,
           },
+          ...pageStateContentBlocks(),
         ],
       };
     }

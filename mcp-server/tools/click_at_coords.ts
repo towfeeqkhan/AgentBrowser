@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { sendAction } from "./shared.js";
+import { sendAction, pageStateContentBlocks } from "./shared.js";
 
 export function register(server: McpServer) {
   server.registerTool(
@@ -18,6 +18,7 @@ export function register(server: McpServer) {
       return {
         content: [
           { type: "text", text: `✅ Clicked at (${x}, ${y})${description ? ` — ${description}` : ""}` },
+          ...pageStateContentBlocks(),
         ],
       };
     }

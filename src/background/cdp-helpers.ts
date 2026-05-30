@@ -233,6 +233,120 @@ export async function waitForPageLoadIfNavigating(
   }
 }
 
+export async function waitForRenderReady(
+  tabId: number,
+  maxWaitMs = 500,
+): Promise<void> {
+  const startedAt = Date.now();
+
+  await chrome.debugger.sendCommand(
+    { tabId },
+    "Runtime.evaluate",
+    { expression: "delete window.__mcpRenderResolved", returnByValue: true },
+  ).catch(() => {});
+
+  return new Promise<void>((resolve) => {
+    function checkAndResolve() {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed > maxWaitMs) {
+        resolve();
+        return;
+      }
+      chrome.tabs.get(tabId).then((tab) => {
+        if (chrome.runtime.lastError || tab.status === "loading") {
+          setTimeout(() => checkAndResolve(), 50);
+          return;
+        }
+        chrome.debugger.sendCommand(
+          { tabId },
+          "Runtime.evaluate",
+          {
+            expression: `
+              new Promise((finish) => {
+                if (window.__mcpRenderResolved) { finish(true); return; }
+                window.__mcpRenderResolved = true;
+                let lastScrollY = window.scrollY;
+                let lastTime = performance.now();
+                let stableFrames = 0;
+                function tick(ts) {
+                  const currentY = window.scrollY;
+                  const dt = ts - lastTime;
+                  if (dt === 0) dt = 1;
+                  const velocity = Math.abs(currentY - lastScrollY) / dt;
+                  if (velocity < 0.05) {
+                    stableFrames++;
+                  } else {
+                    stableFrames = 0;
+                    lastScrollY = currentY;
+                  }
+                  lastTime = ts;
+                  if (stableFrames >= 3) {
+                    doubleRaf(() => {
+                      finish(true);
+                    });
+                    return;
+                  }
+                  requestAnimationFrame(tick);
+                }
+                function doubleRaf(cb) {
+                  requestAnimationFrame(() => {
+                    requestAnimationFrame(() => { cb(); });
+                  });
+                }
+                requestAnimationFrame(tick);
+              })
+            `,
+            returnByValue: true,
+            awaitPromise: true,
+          },
+        ).then((r: any) => {
+          if (r?.result?.value === true) {
+            resolve();
+          } else {
+            setTimeout(() => checkAndResolve(), 50);
+          }
+        }).catch(() => {
+          setTimeout(() => checkAndResolve(), 50);
+        });
+      }).catch(() => {
+        resolve();
+      });
+    }
+
+    checkAndResolve();
+  });
+}
+
+export async function validateCapture(
+  tabId: number,
+  maxAttempts = 3,
+): Promise<void> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise((r) => setTimeout(r, 80 + attempt * 80));
+    const result = (await chrome.debugger.sendCommand(
+      { tabId },
+      "Runtime.evaluate",
+      {
+        expression: `
+          (function() {
+            var elCount = document.querySelectorAll('*').length;
+            var body = document.body;
+            var bodyText = (body && body.innerText || '').trim();
+            var hasImages = document.querySelectorAll('img[src]').length;
+            return { elCount: elCount, bodyLen: bodyText.length, hasImages: hasImages };
+          })()
+        `,
+        returnByValue: true,
+      },
+    )) as any;
+    const check = result?.result?.value;
+    if (check && check.elCount > 20 && check.bodyLen > 0) {
+      return;
+    }
+    console.log(`[EXT] Capture validation attempt ${attempt + 1}/${maxAttempts}: elCount=${check?.elCount}, bodyLen=${check?.bodyLen}`);
+  }
+}
+
 // ─── MutationObserver injection ──────────────────────
 
 export async function injectMutationObserver(tabId: number): Promise<void> {

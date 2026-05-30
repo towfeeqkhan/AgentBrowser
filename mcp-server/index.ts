@@ -86,6 +86,12 @@ wss.on("connection", (ws) => {
     }
 
     if (msg.type === "action_result") {
+      if (msg.result?._pageState) {
+        const ps = msg.result._pageState;
+        setPageState({ screenshot: ps.screenshot, tree: ps.tree });
+        setLastCaptureTime(Date.now());
+        console.error("[MCP] Page state updated from action result");
+      }
       const resolve = pendingActions.get(msg.id);
       if (resolve) {
         resolve(msg.result);
@@ -107,7 +113,7 @@ wss.on("connection", (ws) => {
 
 // ─── MCP Server ───────────────────────────────────────
 const server = new McpServer({
-  name: "browser-control",
+  name: "agent-browser",
   version: "1.0.0",
 });
 

@@ -5,6 +5,7 @@ import {
   findElement,
   findElementById,
   findElementByProximity,
+  pageStateContentBlocks,
 } from "./shared.js";
 
 export function register(server: McpServer) {
@@ -61,6 +62,7 @@ export function register(server: McpServer) {
       return {
         content: [
           { type: "text", text: `Typed "${text}"${clearFirst ? " (cleared first)" : " (appended)"}${pressEnter ? " and pressed Enter" : ""}. Result: ${JSON.stringify(result)}` },
+          ...pageStateContentBlocks(),
         ],
       };
     }

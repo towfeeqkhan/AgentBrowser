@@ -194,6 +194,43 @@ export function setExtensionWs(value: WebSocket | null) { extensionWs = value; }
 export function setPendingActions(value: Map<string, (result: any) => void>) { pendingActions = value; }
 export function setPageStateWaiters(value: Array<() => void>) { pageStateWaiters = value; }
 
+export function pageStateContentBlocks(compact: boolean = true) {
+  if (!pageState) return [] as Array<{ type: "text"; text: string } | { type: "image"; data: string; mimeType: string }>;
+  let tree = pageState.tree;
+  if (compact && tree) {
+    let filtered = tree.filter((e: any) => e.name && e.name.trim() !== "");
+    filtered = filtered.map((e: any) => {
+      const { box, ...rest } = e;
+      return rest;
+    });
+    const nameCounts = new Map<string, number>();
+    filtered.forEach((e: any) => {
+      const key = `${e.role}:${e.name}`;
+      nameCounts.set(key, (nameCounts.get(key) || 0) + 1);
+    });
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    filtered.forEach((e: any) => {
+      const key = `${e.role}:${e.name}`;
+      const count = nameCounts.get(key) || 1;
+      if (count > 1) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push({ ...e, name: `${e.name} (${count}x)` });
+        }
+      } else {
+        merged.push(e);
+      }
+    });
+    tree = merged;
+  }
+  const treeText = JSON.stringify(tree);
+  return [
+    { type: "image" as const, data: pageState.screenshot, mimeType: "image/jpeg" },
+    { type: "text" as const, text: treeText },
+  ];
+}
+
 // ─── Pipeline Schema (shared with execute_pipeline) ──
 export const PipelineActionSchema = z.object({
   type: z.enum(["click", "type", "scroll", "navigate", "hover"]).describe(
