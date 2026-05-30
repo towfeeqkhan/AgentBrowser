@@ -1,4 +1,4 @@
-import { BUILTIN_DISMISSALS, OVERLAY_CONTAINER_SELECTORS, OVERLAY_CLOSE_SELECTORS } from "./constants.js";
+import { BUILTIN_DISMISSALS, OVERLAY_CONTAINER_SELECTORS } from "./constants.js";
 import {
   attachCDP_MCP,
   captureViewportScreenshot,
@@ -495,41 +495,51 @@ export async function performGetText(selector?: string, x?: number, y?: number, 
 
 export async function performDismissActiveOverlays() {
   const tabId = await attachCDP_MCP(true);
+
+  await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Escape",
+    code: "Escape",
+    keyCode: 27,
+    windowsVirtualKeyCode: 27,
+  });
+  await chrome.debugger.sendCommand({ tabId }, "Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Escape",
+    code: "Escape",
+    keyCode: 27,
+    windowsVirtualKeyCode: 27,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
   try {
     const result = (await chrome.debugger.sendCommand(
       { tabId },
       "Runtime.evaluate",
       {
         expression: `(() => {
-          let dismissed = 0;
+          let removed = 0;
           const overlays = [
             ...document.querySelectorAll(${JSON.stringify(OVERLAY_CONTAINER_SELECTORS.join(","))})
           ];
-          const closeSelectors = ${JSON.stringify(OVERLAY_CLOSE_SELECTORS)};
-          const builtinDismissals = ${JSON.stringify(BUILTIN_DISMISSALS)};
           for (const overlay of overlays) {
             const rect = overlay.getBoundingClientRect();
             if (rect.width <= 0 || rect.height <= 0) continue;
-            for (const sel of closeSelectors) {
-              const closeBtn = overlay.querySelector(sel);
-              if (closeBtn) {
-                closeBtn.click();
-                dismissed++;
-                break;
-              }
-            }
-            if (dismissed > 0 && dismissed >= overlays.length) break;
+            overlay.remove();
+            removed++;
           }
-          if (dismissed === 0) {
+          if (removed === 0) {
+            const builtinDismissals = ${JSON.stringify(BUILTIN_DISMISSALS)};
             for (const d of builtinDismissals) {
               const el = document.querySelector(d.selector);
               if (el && el.getBoundingClientRect().width > 0) {
-                d.action === 'remove' ? el.remove() : el.click();
-                dismissed++;
+                el.remove();
+                removed++;
               }
             }
           }
-          return dismissed;
+          return removed;
         })()`,
         returnByValue: true,
       },

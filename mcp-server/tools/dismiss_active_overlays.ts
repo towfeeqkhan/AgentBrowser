@@ -5,7 +5,7 @@ export function register(server: McpServer) {
   server.registerTool(
     "dismiss_active_overlays",
     {
-      description: "Dismiss all visible overlays, modals, popups, dialogs, cookie banners, and lightboxes on the current page. Scans for common close buttons within overlay containers and clicks them. Also runs built-in cookie/privacy dismissal selectors as a fallback. Use this when page interactions are blocked by popups or overlays.",
+      description: "Dismiss ALL visible overlays, modals, popups, dialogs, lightboxes, and cookie banners on the current page. This is your FIRST tool whenever a popup or overlay blocks interactions. Do NOT try to click close buttons manually with click_element — use this tool instead. It sends an Escape key then removes overlay elements from the DOM, which cannot toggle or open new overlays. Always follow with get_page_state to see the unobstructed page.",
     },
     async () => {
       const result: any = await sendAction({ type: "dismiss_active_overlays" });
@@ -14,7 +14,7 @@ export function register(server: McpServer) {
           {
             type: "text",
             text: result?.success
-              ? `Dismissed ${result.dismissed ?? 0} overlay(s).`
+              ? `Dismissed ${result.dismissed ?? 0} overlay(s). Call get_page_state to see the page.`
               : `Dismiss failed: ${result?.error ?? "unknown error"}`,
           },
         ],

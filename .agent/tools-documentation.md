@@ -85,8 +85,9 @@ Complete catalog of MCP tools available to control and interact with the browser
 
 ## 6. Overlay & Popup Dismissal
 
-* **`dismiss_active_overlays`**: Scans the current page for visible overlays, modals, popups, dialogs, lightboxes, and cookie banners, then automatically clicks their close/dismiss buttons to remove them. Use this tool whenever a popup or overlay blocks your interactions.
-  * **How it works**: First scans overlay containers (`[class*="overlay"]`, `[class*="modal"]`, `[class*="popup"]`, `[class*="dialog"]`, `[class*="lightbox"]`, `div[role="dialog"]`, `div[aria-modal="true"]`) and looks for close buttons within them (`[class*="close"]`, `[aria-label*="close"]`, `[class*="dismiss"]`, `[aria-label*="dismiss"]`). Clicks the first match in each visible container. Falls back to built-in cookie/privacy selectors if no container-based overlay is found.
-  * **Returns**: The number of overlays dismissed — call `get_page_state` immediately after to see the unobstructed page.
-  * **Multi-pass**: Some sites have layered overlays — call `dismiss_active_overlays` again if the first pass missed one.
-  * **Pipeline integration**: The `execute_pipeline` tool also supports `autoDismiss` for per-action overlay removal during multi-step flows, but `dismiss_active_overlays` is the standalone command for pre-clearance.
+* **`dismiss_active_overlays`**: ⚠️ **THIS IS YOUR FIRST TOOL when any popup, modal, overlay, dialog, lightbox, or cookie banner appears on screen.** Do NOT try to click close buttons with `click_element` — use this tool instead.
+  * **What it does**: Sends an Escape key (closes focus-trap dialogs natively) then removes ALL visible overlay containers from the DOM. Since it removes elements directly rather than clicking close buttons, it cannot toggle or accidentally open new overlays.
+  * **Always follow with `get_page_state`** to see the unobstructed page after dismissal.
+  * **Speed tip**: Call `dismiss_active_overlays` before starting any page interaction — it clears the viewport upfront so every subsequent tool call hits real page elements.
+  * **If overlays re-appear**: Some sites re-spawn overlays on scroll or interaction. Call `dismiss_active_overlays` again — it's cheap and idempotent.
+  * **Pipeline integration**: The `execute_pipeline` tool also supports `autoDismiss` for per-action overlay removal during multi-step flows, but `dismiss_active_overlays` is the standalone tool for upfront clearance.
