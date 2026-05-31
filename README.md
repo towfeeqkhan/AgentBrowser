@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="src/popup/assets/AgentBrowser-GithubBanner.png" alt="AgentBrowser Banner" width="100%" />
+
 # 🌐 AgentBrowser
 
 **AI-powered browser automation via MCP**
@@ -26,6 +28,7 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 <td width="50%">
 
 ### 🧠 Intelligent Page Understanding
+
 - **Accessibility Tree Capture** — Parses the full AX tree via CDP, extracts interactive elements with bounding boxes, roles, states, and values
 - **Live Screenshots** — Real-time JPEG viewport captures returned alongside structured data
 - **Smart Tree Pruning** — Filters to visible viewport elements, deduplicates repeated nodes, and strips noise for compact payloads
@@ -34,6 +37,7 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 <td width="50%">
 
 ### 🖱️ Full Browser Control
+
 - **Click, Type, Scroll, Hover** — Pixel-precise interactions using CDP `Input.dispatch*` commands
 - **Element Resolution** — Find elements by ID, name, CSS selector, or proximity-based disambiguation
 - **Navigation Suite** — Navigate to URLs, go back/forward, refresh, manage tabs (list, switch, close)
@@ -44,6 +48,7 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 <td width="50%">
 
 ### ⚡ Action Pipeline
+
 - **Batched Execution** — Chain multiple actions (click → type → click) in a single round-trip for dramatically faster multi-step flows
 - **Auto-Dismiss Overlays** — Automatically handle popups, cookie banners, and modals during pipeline execution
 - **Recovery Screenshots** — On failure, captures a screenshot at the point of error for AI diagnosis
@@ -52,6 +57,7 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 <td width="50%">
 
 ### 🔌 MCP Integration
+
 - **21 MCP Tools** — Complete browser automation toolkit exposed via the Model Context Protocol
 - **Stdio Transport** — Standard MCP server communication over stdin/stdout
 - **WebSocket Bridge** — Real-time bidirectional communication between the MCP server and Chrome extension
@@ -63,6 +69,7 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 <td width="50%">
 
 ### 🔄 Real-Time State Sync
+
 - **Post-Action Auto-Capture** — Every state-changing action automatically returns fresh page state
 - **Mutation Observer** — Detects DOM changes and triggers re-capture
 - **Heartbeat Keep-Alive** — Persistent WebSocket connection with automatic reconnection
@@ -71,6 +78,7 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 <td width="50%">
 
 ### 🛡️ Robust Architecture
+
 - **Chrome Manifest V3** — Modern service worker-based extension architecture
 - **CDP Integration** — Direct Chrome DevTools Protocol access for reliable, low-level control
 - **Cross-Platform Clipboard** — Native clipboard operations on Windows, macOS, and Linux
@@ -86,16 +94,16 @@ AgentBrowser is a Chrome extension + MCP server that lets AI agents see, underst
 
 AgentBrowser exposes **21 tools** to AI agents via MCP:
 
-| Category | Tools | Description |
-|:---|:---|:---|
-| 📸 **Page State** | `get_page_state`, `capture_page` | Screenshot + accessibility tree of the current viewport |
-| 🖱️ **Interaction** | `click_element`, `click_at_coords`, `type_text`, `hover_element`, `scroll_page` | Click, type, hover, and scroll on the page |
-| 🔍 **Query** | `find_element`, `get_text`, `get_url` | Find elements in the tree, extract text content, get current URL |
-| 🧭 **Navigation** | `navigate`, `refresh`, `go_back`, `go_forward` | URL navigation and browser history |
-| 📑 **Tabs** | `tab_list`, `tab_switch`, `tab_close` | Multi-tab management |
-| 📋 **Clipboard** | `clipboard_copy`, `clipboard_paste` | Cross-platform native clipboard operations |
-| 🚀 **Pipeline** | `execute_pipeline` | Batch multiple actions in a single round-trip |
-| 🧹 **Overlays** | `dismiss_active_overlays` | Auto-dismiss popups, modals, and banners |
+| Category           | Tools                                                                           | Description                                                      |
+| :----------------- | :------------------------------------------------------------------------------ | :--------------------------------------------------------------- |
+| 📸 **Page State**  | `get_page_state`, `capture_page`                                                | Screenshot + accessibility tree of the current viewport          |
+| 🖱️ **Interaction** | `click_element`, `click_at_coords`, `type_text`, `hover_element`, `scroll_page` | Click, type, hover, and scroll on the page                       |
+| 🔍 **Query**       | `find_element`, `get_text`, `get_url`                                           | Find elements in the tree, extract text content, get current URL |
+| 🧭 **Navigation**  | `navigate`, `refresh`, `go_back`, `go_forward`                                  | URL navigation and browser history                               |
+| 📑 **Tabs**        | `tab_list`, `tab_switch`, `tab_close`                                           | Multi-tab management                                             |
+| 📋 **Clipboard**   | `clipboard_copy`, `clipboard_paste`                                             | Cross-platform native clipboard operations                       |
+| 🚀 **Pipeline**    | `execute_pipeline`                                                              | Batch multiple actions in a single round-trip                    |
+| 🧹 **Overlays**    | `dismiss_active_overlays`                                                       | Auto-dismiss popups, modals, and banners                         |
 
 ---
 
@@ -376,16 +384,24 @@ With Chrome open and the extension connected, ask your AI agent to use the `agen
 
 > **Example Prompt:**
 >
-> *Use the agent-browser MCP tool to open the following GitHub repository and provide a detailed summary: https://github.com/towfeeqkhan/AgentBrowser*
+> _Use the agent-browser MCP tool to open the following GitHub repository and provide a detailed summary: https://github.com/towfeeqkhan/AgentBrowser_
 >
-> *The summary should include:*
-> 1. *What it is — A clear explanation of the project*
-> 2. *Its features — The key functionalities it offers*
-> 3. *Who built it — The creator of the project*
-> 4. *How to use it — A step-by-step guide on getting started*
+> _The summary should include:_
+>
+> 1. _What it is — A clear explanation of the project_
+> 2. _Its features — The key functionalities it offers_
+> 3. _Who built it — The creator of the project_
+> 4. _How to use it — A step-by-step guide on getting started_
 
 > [!TIP]
-> Make sure **Google Chrome is open** before sending browser automation prompts to your AI agent.
+> To maximize automation speed, always allow the AI agent to use **any of the AgentBrowser tools** without requiring manual approval for each action.
+
+---
+
+## 🤝 Contributing
+
+Contributions are always welcome! If you want to improve this project, fix bugs, or add new features, please feel free to start contributing.
+If anyone wants to collaborate, I love building projects and I am always ready to collaborate.
 
 ---
 
@@ -397,9 +413,3 @@ With Chrome open and the extension connected, ask your AI agent to use the `agen
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-towfeeqkhan-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/towfeeqkhan)
 
 ---
-
-<div align="center">
-
-**Built with ❤️ by [Towfeeq Khan](https://github.com/towfeeqkhan)**
-
-</div>
